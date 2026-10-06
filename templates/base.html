@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SOC Threat Operations{% endblock %} | {{ app_name }}</title>
+  <meta name="description" content="PhishGuard Live - Enterprise Cloud Phishing URL Threat Detection & Security Monitoring Platform">
+  
+  <!-- Modern Typography: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Core Cybersecurity Stylesheets -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% if session.get('user_id') %}
+  <div class="soc-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="soc-sidebar">
+      <div class="soc-brand">
+        <div class="brand-icon">
+          <i class="fas fa-shield-halved"></i>
+        </div>
+        <div class="brand-text">
+          <h1>{{ app_name }}</h1>
+          <span>{{ app_subtitle }}</span>
+        </div>
+      </div>
+
+      <nav class="soc-nav">
+        <div class="nav-section-title">Core Operations</div>
+        <a href="{{ url_for('dashboard.dashboard') }}" class="soc-nav-item {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
+          <i class="fas fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('scanner.scanner') }}" class="soc-nav-item {% if request.endpoint == 'scanner.scanner' %}active{% endif %}">
+          <i class="fas fa-radar"></i>
+          <span>URL Scanner</span>
+        </a>
+        <a href="{{ url_for('scanner.history') }}" class="soc-nav-item {% if request.endpoint == 'scanner.history' %}active{% endif %}">
+          <i class="fas fa-clock-rotate-left"></i>
+          <span>Scan History</span>
+        </a>
+
+        <div class="nav-section-title">Threat Intel</div>
+        <a href="{{ url_for('alerts.list_alerts') }}" class="soc-nav-item {% if request.endpoint == 'alerts.list_alerts' %}active{% endif %}">
+          <i class="fas fa-bell"></i>
+          <span>Security Alerts</span>
+          {% if active_alert_count > 0 %}
+          <span class="nav-badge">{{ active_alert_count }}</span>
+          {% endif %}
+        </a>
+        <a href="{{ url_for('reports.reports') }}" class="soc-nav-item {% if request.endpoint == 'reports.reports' %}active{% endif %}">
+          <i class="fas fa-file-shield"></i>
+          <span>Reports</span>
+        </a>
+
+        <div class="nav-section-title">Integrations</div>
+        <a href="{{ url_for('dashboard.api_docs') }}" class="soc-nav-item {% if request.endpoint == 'dashboard.api_docs' %}active{% endif %}">
+          <i class="fas fa-code"></i>
+          <span>API Documentation</span>
+        </a>
+        <a href="{{ url_for('dashboard.external_device') }}" class="soc-nav-item {% if request.endpoint == 'dashboard.external_device' %}active{% endif %}">
+          <i class="fas fa-laptop-code"></i>
+          <span>External Device</span>
+        </a>
+
+        {% if session.get('role') == 'admin' %}
+        <div class="nav-section-title">System Admin</div>
+        <a href="{{ url_for('admin.admin_panel') }}" class="soc-nav-item {% if request.endpoint == 'admin.admin_panel' %}active{% endif %}">
+          <i class="fas fa-user-shield"></i>
+          <span>Admin Console</span>
+        </a>
+        {% endif %}
+      </nav>
+
+      <div class="soc-sidebar-footer">
+        <div class="user-snippet">
+          <div class="user-avatar">
+            {{ session.get('username', 'U')[0]|upper }}
+          </div>
+          <div class="user-info">
+            <div class="username">{{ session.get('username') }}</div>
+            <div class="user-role">{{ session.get('role') }}</div>
+          </div>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn-logout" title="Sign Out">
+          <i class="fas fa-power-off"></i>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main SOC Content View -->
+    <main class="soc-main">
+      <!-- Top SOC Status Header -->
+      <header class="soc-topbar">
+        <div class="topbar-title">
+          <h2>{% block page_title %}Dashboard Overview{% endblock %}</h2>
+          <p>{% block page_subtitle %}Real-time defensive URL telemetry & threat vectors{% endblock %}</p>
+        </div>
+        <div class="topbar-meta">
+          <div class="soc-status-indicator">
+            <span class="beacon-dot"></span>
+            <span id="socLiveClock">UTC LIVE</span>
+          </div>
+          <button class="mobile-menu-btn" id="mobileToggle" aria-label="Toggle Navigation">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+          <div class="alert-cyber {{ category }}">
+            <div>
+              {% if category == 'success' %}<i class="fas fa-check-circle me-2"></i>
+              {% elif category == 'danger' %}<i class="fas fa-triangle-exclamation me-2"></i>
+              {% elif category == 'warning' %}<i class="fas fa-radiation me-2"></i>
+              {% else %}<i class="fas fa-circle-info me-2"></i>{% endif %}
+              {{ message }}
+            </div>
+            <button type="button" style="background:none; border:none; color:inherit; cursor:pointer;" onclick="this.parentElement.remove();">&times;</button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+
+      <!-- Page Body Block -->
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% else %}
+  <!-- Unauthenticated Layout (Login / Register / Public) -->
+  <div class="auth-wrapper" style="min-height: 100vh; display: flex; flex-direction: column;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div style="max-width: 480px; margin: 24px auto 0; width: 90%;">
+        {% for category, message in messages %}
+        <div class="alert-cyber {{ category }}">
+          <span>{{ message }}</span>
+          <button type="button" style="background:none; border:none; color:inherit; cursor:pointer;" onclick="this.parentElement.remove();">&times;</button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    {% block auth_content %}{% endblock %}
+  </div>
+  {% endif %}
+
+  <!-- Core Scripts -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

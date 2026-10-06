@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Threat Intelligence Reports{% endblock %}
+{% block page_title %}Executive Threat Intelligence & Reports{% endblock %}
+{% block page_subtitle %}Aggregated metrics, indicator distribution, and audit compliance data{% endblock %}
+
+{% block content %}
+<!-- Export Action Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+  <div>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">
+      Defensive Operations Report &bull; Generated from live PostgreSQL scan repository
+    </span>
+  </div>
+  <div>
+    <a href="{{ url_for('reports.export_csv') }}" class="btn-cyber" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-color: #10b981;">
+      <i class="fas fa-file-csv"></i> Export Threat Logs (.CSV)
+    </a>
+  </div>
+</div>
+
+<!-- Primary Stats Overview Strip -->
+<div class="telemetry-grid">
+  <div class="glass-panel metric-card" style="--accent-color: var(--cyan-core);">
+    <div class="metric-header">
+      <span class="metric-label">Aggregated Volume</span>
+      <i class="fas fa-cubes metric-icon"></i>
+    </div>
+    <div class="metric-value">{{ total_scans }}</div>
+    <div class="metric-footer">Total URLs analyzed</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: var(--threat-safe);">
+    <div class="metric-header">
+      <span class="metric-label">Safe Ratio</span>
+      <i class="fas fa-shield-check metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: var(--threat-safe);">{{ safe_pct }}%</div>
+    <div class="metric-footer">{{ safe_scans }} benign domains</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: var(--threat-suspicious);">
+    <div class="metric-header">
+      <span class="metric-label">Suspicious Ratio</span>
+      <i class="fas fa-radiation metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: var(--threat-suspicious);">{{ suspicious_pct }}%</div>
+    <div class="metric-footer">{{ suspicious_scans }} anomalous links</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: var(--threat-phishing);">
+    <div class="metric-header">
+      <span class="metric-label">Phishing Catch</span>
+      <i class="fas fa-skull-crossbones metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: var(--threat-phishing);">{{ phishing_pct }}%</div>
+    <div class="metric-footer">{{ phishing_scans }} malicious domains</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: #a855f7;">
+    <div class="metric-header">
+      <span class="metric-label">Threat Intercept Rate</span>
+      <i class="fas fa-crosshairs metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: #c084fc;">{{ detection_rate }}%</div>
+    <div class="metric-footer">Suspicious + Phishing</div>
+  </div>
+</div>
+
+<!-- Threat Severity & Top Indicators Grid -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+  <!-- Severity Breakdown -->
+  <div class="glass-panel" style="padding: 24px;">
+    <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 18px; color: #fff;">
+      <i class="fas fa-layer-group" style="color: var(--cyan-core); margin-right: 8px;"></i> Threat Severity Distribution
+    </h3>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+          <span style="color: #ef4444; font-weight: 700;">CRITICAL SEVERITY</span>
+          <span style="font-family: var(--font-mono); font-weight: 700;">{{ severity_counts.CRITICAL }}</span>
+        </div>
+        <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+          <div style="height: 100%; background: #ef4444; width: {{ (severity_counts.CRITICAL / (total_scans or 1) * 100)|round }}%;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+          <span style="color: #f87171; font-weight: 700;">HIGH SEVERITY</span>
+          <span style="font-family: var(--font-mono); font-weight: 700;">{{ severity_counts.HIGH }}</span>
+        </div>
+        <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+          <div style="height: 100%; background: #f87171; width: {{ (severity_counts.HIGH / (total_scans or 1) * 100)|round }}%;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+          <span style="color: #f59e0b; font-weight: 700;">MEDIUM SEVERITY</span>
+          <span style="font-family: var(--font-mono); font-weight: 700;">{{ severity_counts.MEDIUM }}</span>
+        </div>
+        <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+          <div style="height: 100%; background: #f59e0b; width: {{ (severity_counts.MEDIUM / (total_scans or 1) * 100)|round }}%;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+          <span style="color: #10b981; font-weight: 700;">LOW SEVERITY (BENIGN)</span>
+          <span style="font-family: var(--font-mono); font-weight: 700;">{{ severity_counts.LOW }}</span>
+        </div>
+        <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+          <div style="height: 100%; background: #10b981; width: {{ (severity_counts.LOW / (total_scans or 1) * 100)|round }}%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Indicators Detected -->
+  <div class="glass-panel" style="padding: 24px;">
+    <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 18px; color: #fff;">
+      <i class="fas fa-crosshairs" style="color: var(--cyan-core); margin-right: 8px;"></i> Most Prevalent Threat Signatures
+    </h3>
+    {% if top_indicators %}
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      {% for name, count in top_indicators %}
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(10, 16, 28, 0.6); padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border-subtle);">
+        <span style="font-size: 0.85rem; color: #fff; font-weight: 500;">
+          <i class="fas fa-fingerprint" style="color: var(--cyan-core); margin-right: 8px; font-size: 0.75rem;"></i>
+          {{ name }}
+        </span>
+        <span class="badge-threat phishing" style="font-size: 0.7rem;">
+          {{ count }} detections
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">
+      No threats flagged yet. Run URL scans to analyze indicator frequencies.
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Top Recent Threats Table -->
+<div class="glass-panel" style="padding: 24px; overflow-x: auto;">
+  <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 18px; color: #fff;">
+    <i class="fas fa-biohazard" style="color: var(--threat-phishing); margin-right: 8px;"></i> Latest Intercepted Phishing & Suspicious Campaigns
+  </h3>
+  {% if recent_threats %}
+  <table class="cyber-table">
+    <thead>
+      <tr>
+        <th>Target URL</th>
+        <th>Score</th>
+        <th>Verdict</th>
+        <th>Risk Level</th>
+        <th>Client IP</th>
+        <th>Logged Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for threat in recent_threats %}
+      <tr>
+        <td style="max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <a href="{{ url_for('scanner.result_detail', scan_id=threat.id) }}" style="color: #fff; text-decoration: none;" title="{{ threat.url }}">
+            {{ threat.url }}
+          </a>
+        </td>
+        <td style="font-weight: 800; font-family: var(--font-mono); color: {% if threat.threat_score >= 60 %}var(--threat-phishing){% else %}var(--threat-suspicious){% endif %};">
+          {{ threat.threat_score }}
+        </td>
+        <td>
+          <span class="badge-threat {{ threat.verdict|lower }}">{{ threat.verdict }}</span>
+        </td>
+        <td style="font-weight: 700; font-size: 0.78rem; color: {% if threat.risk_level in ['CRITICAL', 'HIGH'] %}#ef4444{% else %}#f59e0b{% endif %};">
+          {{ threat.risk_level }}
+        </td>
+        <td style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-subtle);">
+          {{ threat.client_ip or 'External Device' }}
+        </td>
+        <td style="font-size: 0.78rem; color: var(--text-subtle); font-family: var(--font-mono);">
+          {{ threat.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">
+    No high-risk threats detected yet.
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

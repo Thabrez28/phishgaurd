@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}SOC Live Operations Center{% endblock %}
+{% block page_title %}Security Operations Dashboard{% endblock %}
+{% block page_subtitle %}Live telemetry, threat classifications, and real-time perimeter events{% endblock %}
+
+{% block content %}
+<!-- Quick Action Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+  <div style="display: flex; gap: 12px; align-items: center;">
+    <span class="badge-threat safe">
+      <i class="fas fa-circle-check"></i> Defensive Engine Active
+    </span>
+    <span class="badge-threat {% if critical_alerts > 0 %}phishing{% else %}safe{% endif %}">
+      <i class="fas fa-shield-virus"></i> Critical Threats: {{ critical_alerts }}
+    </span>
+    <span style="font-size: 0.82rem; color: var(--text-muted);">
+      Detection Rate: <strong style="color: var(--cyan-core);">{{ detection_rate }}%</strong>
+    </span>
+  </div>
+  <div>
+    <a href="{{ url_for('scanner.scanner') }}" class="btn-cyber">
+      <i class="fas fa-radar"></i> Launch URL Scanner
+    </a>
+  </div>
+</div>
+
+<!-- Primary Telemetry Metrics Grid -->
+<div class="telemetry-grid">
+  <!-- Total Scans -->
+  <div class="glass-panel metric-card" style="--accent-color: var(--cyan-core);">
+    <div class="metric-header">
+      <span class="metric-label">Total Scans</span>
+      <i class="fas fa-database metric-icon"></i>
+    </div>
+    <div class="metric-value">{{ total_scans }}</div>
+    <div class="metric-footer">Indexed across all nodes</div>
+  </div>
+
+  <!-- Safe -->
+  <div class="glass-panel metric-card" style="--accent-color: var(--threat-safe);">
+    <div class="metric-header">
+      <span class="metric-label">Safe Domains</span>
+      <i class="fas fa-check-double metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: var(--threat-safe);">{{ safe_scans }}</div>
+    <div class="metric-footer">Threat score 0 – 29</div>
+  </div>
+
+  <!-- Suspicious -->
+  <div class="glass-panel metric-card" style="--accent-color: var(--threat-suspicious);">
+    <div class="metric-header">
+      <span class="metric-label">Suspicious URLs</span>
+      <i class="fas fa-triangle-exclamation metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: var(--threat-suspicious);">{{ suspicious_scans }}</div>
+    <div class="metric-footer">Threat score 30 – 59</div>
+  </div>
+
+  <!-- Phishing -->
+  <div class="glass-panel metric-card" style="--accent-color: var(--threat-phishing);">
+    <div class="metric-header">
+      <span class="metric-label">Phishing Intercepts</span>
+      <i class="fas fa-biohazard metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: var(--threat-phishing);">{{ phishing_scans }}</div>
+    <div class="metric-footer">Threat score 60 – 100</div>
+  </div>
+
+  <!-- Active Alerts -->
+  <div class="glass-panel metric-card" style="--accent-color: #ec4899;">
+    <div class="metric-header">
+      <span class="metric-label">Active Alerts</span>
+      <i class="fas fa-bell metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: #f472b6;">{{ active_alerts }}</div>
+    <div class="metric-footer">Open & Investigating</div>
+  </div>
+</div>
+
+<!-- SOC Visual Charts -->
+<div class="charts-grid">
+  <!-- Activity Timeline -->
+  <div class="glass-panel chart-card">
+    <div class="chart-header">
+      <h3><i class="fas fa-chart-area" style="color: var(--cyan-core); margin-right: 8px;"></i> Scan Throughput (Last 7 Days)</h3>
+      <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">PostgreSQL Telemetry</span>
+    </div>
+    <div class="chart-canvas-wrap">
+      <canvas id="scanActivityChart" 
+              data-dates='{{ dates|tojson }}' 
+              data-counts='{{ daily_counts|tojson }}'></canvas>
+    </div>
+  </div>
+
+  <!-- Threat Distribution Doughnut -->
+  <div class="glass-panel chart-card">
+    <div class="chart-header">
+      <h3><i class="fas fa-chart-pie" style="color: var(--cyan-core); margin-right: 8px;"></i> Threat Classification</h3>
+      <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time</span>
+    </div>
+    <div class="chart-canvas-wrap">
+      <canvas id="verdictDoughnutChart"
+              data-safe="{{ safe_scans }}"
+              data-suspicious="{{ suspicious_scans }}"
+              data-phishing="{{ phishing_scans }}"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Two Column Tables: Recent Scans & Security Audit Events -->
+<div style="display: grid; grid-template-columns: 3fr 2fr; gap: 20px; margin-bottom: 24px;">
+  <!-- Recent Scans Table -->
+  <div class="glass-panel" style="padding: 24px; overflow-x: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+      <h3 style="font-size: 1rem; font-weight: 700;">
+        <i class="fas fa-list-check" style="color: var(--cyan-core); margin-right: 8px;"></i> Recent Scans
+      </h3>
+      <a href="{{ url_for('scanner.history') }}" style="font-size: 0.78rem; color: var(--cyan-core); text-decoration: none;">
+        View All <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+
+    {% if recent_scans %}
+    <table class="cyber-table">
+      <thead>
+        <tr>
+          <th>Target URL</th>
+          <th>Score</th>
+          <th>Verdict</th>
+          <th>Source</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for scan in recent_scans %}
+        <tr>
+          <td style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <a href="{{ url_for('scanner.result_detail', scan_id=scan.id) }}" style="color: #fff; text-decoration: none;" title="{{ scan.url }}">
+              {{ scan.url }}
+            </a>
+          </td>
+          <td>
+            <span style="font-weight: 700; font-family: var(--font-mono); color: {% if scan.threat_score >= 60 %}var(--threat-phishing){% elif scan.threat_score >= 30 %}var(--threat-suspicious){% else %}var(--threat-safe){% endif %};">
+              {{ scan.threat_score }}
+            </span>
+          </td>
+          <td>
+            <span class="badge-threat {{ scan.verdict|lower }}">
+              {{ scan.verdict }}
+            </span>
+          </td>
+          <td>
+            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-subtle);">
+              {{ scan.source }}
+            </span>
+          </td>
+          <td style="font-size: 0.75rem; color: var(--text-subtle);">
+            {{ scan.created_at.strftime('%H:%M:%S') }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.88rem;">
+      <i class="fas fa-radar" style="font-size: 2rem; margin-bottom: 12px; color: var(--text-subtle); display: block;"></i>
+      No scans recorded yet. Enter a URL on the scanner page or trigger an external agent scan.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Live Security Event Audit Trail -->
+  <div class="glass-panel" style="padding: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+      <h3 style="font-size: 1rem; font-weight: 700;">
+        <i class="fas fa-shield-virus" style="color: var(--cyan-core); margin-right: 8px;"></i> Security Audit Trail
+      </h3>
+      <span class="beacon-dot"></span>
+    </div>
+
+    <div style="max-height: 380px; overflow-y: auto; padding-right: 6px;">
+      {% if recent_events %}
+        {% for event in recent_events %}
+        <div style="padding: 10px 12px; margin-bottom: 8px; background: rgba(10, 16, 28, 0.6); border-radius: 8px; border-left: 3px solid {% if 'FAILURE' in event.event_type or 'DENIED' in event.event_type or 'PHISHING' in event.event_type %}#ef4444{% elif 'ALERT' in event.event_type or 'SUSPICIOUS' in event.event_type %}#f59e0b{% else %}#38bdf8{% endif %};">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 0.72rem; font-weight: 700; color: #fff; font-family: var(--font-mono);">{{ event.event_type }}</span>
+            <span style="font-size: 0.7rem; color: var(--text-subtle);">{{ event.created_at.strftime('%H:%M:%S') }}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.3;">{{ event.description }}</div>
+          <div style="font-size: 0.68rem; color: var(--text-subtle); margin-top: 4px;">
+            IP: {{ event.ip_address or 'Internal' }}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px;">No security events logged.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

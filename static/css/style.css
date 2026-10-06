@@ -1,0 +1,311 @@
+/* ==========================================================================
+   PhishGuard Live - Cyber Security SOC Design System
+   Color tokens, glassmorphism, glowing accents, cybernetic animations
+   ========================================================================== */
+
+:root {
+  /* Color Palette */
+  --bg-primary: #070b14;
+  --bg-secondary: #0c1322;
+  --bg-card: rgba(13, 22, 38, 0.75);
+  --bg-card-hover: rgba(19, 32, 56, 0.85);
+  --bg-glass: rgba(15, 23, 42, 0.65);
+  
+  --border-glow: rgba(56, 189, 248, 0.22);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-active: #38bdf8;
+  
+  /* Cyber Accents */
+  --cyan-core: #00f2fe;
+  --blue-core: #4facfe;
+  --cyan-glow: rgba(0, 242, 254, 0.25);
+  --neon-blue: #38bdf8;
+  
+  /* Threat Severity Tones */
+  --threat-safe: #10b981;
+  --threat-safe-bg: rgba(16, 185, 129, 0.15);
+  --threat-suspicious: #f59e0b;
+  --threat-suspicious-bg: rgba(245, 158, 11, 0.15);
+  --threat-phishing: #ef4444;
+  --threat-phishing-bg: rgba(239, 68, 68, 0.2);
+  --threat-critical: #dc2626;
+  --threat-critical-glow: rgba(220, 38, 38, 0.4);
+  
+  /* Typography */
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  /* Transitions */
+  --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.07) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(79, 172, 254, 0.05) 0%, transparent 40%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+}
+
+/* Glassmorphism Card Utilities */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-glow);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: var(--transition-smooth);
+}
+
+.glass-panel:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 12px 40px 0 rgba(0, 242, 254, 0.1);
+}
+
+/* Cyber Header Glow */
+.cyber-glow-text {
+  background: linear-gradient(135deg, #ffffff 0%, var(--cyan-core) 50%, var(--blue-core) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+}
+
+/* Status & Threat Badges */
+.badge-threat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+.badge-threat.safe {
+  background: var(--threat-safe-bg);
+  color: var(--threat-safe);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.badge-threat.suspicious {
+  background: var(--threat-suspicious-bg);
+  color: var(--threat-suspicious);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.badge-threat.phishing {
+  background: var(--threat-phishing-bg);
+  color: var(--threat-phishing);
+  border-color: rgba(239, 68, 68, 0.4);
+  animation: pulse-red 2s infinite;
+}
+
+.badge-threat.critical {
+  background: var(--threat-critical-glow);
+  color: #ff6b6b;
+  border-color: #ef4444;
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 14px 4px rgba(239, 68, 68, 0.6); }
+}
+
+/* Button Accents */
+.btn-cyber {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  text-decoration: none;
+}
+
+.btn-cyber:hover {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  border-color: var(--cyan-core);
+  box-shadow: 0 0 16px rgba(14, 165, 233, 0.45);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-cyber-danger {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  color: #fff;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.btn-cyber-danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5);
+  color: #fff;
+}
+
+.btn-cyber-outline {
+  background: transparent;
+  color: var(--cyan-core);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.btn-cyber-outline:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: var(--cyan-core);
+  color: #fff;
+}
+
+/* Flash Messages */
+.flash-container {
+  margin-bottom: 20px;
+}
+
+.alert-cyber {
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid;
+  font-size: 0.92rem;
+}
+
+.alert-cyber.success {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+.alert-cyber.danger {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.alert-cyber.warning {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+}
+
+.alert-cyber.info {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #7dd3fc;
+}
+
+/* Inputs & Form Controls */
+.cyber-input {
+  width: 100%;
+  background: rgba(10, 16, 28, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  transition: var(--transition-smooth);
+}
+
+.cyber-input:focus {
+  outline: none;
+  border-color: var(--cyan-core);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.35);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.cyber-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+/* Code Snippets & Monospace */
+.code-block {
+  background: #050811;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: #38bdf8;
+  overflow-x: auto;
+  position: relative;
+}
+
+/* Responsive Table */
+.cyber-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.cyber-table th {
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+}
+
+.cyber-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.cyber-table tr:hover td {
+  background: rgba(56, 189, 248, 0.04);
+}
+
+/* Pulse Beacon */
+.beacon-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--threat-safe);
+  box-shadow: 0 0 8px var(--threat-safe);
+  animation: pulse-beacon 1.5s infinite;
+}
+
+@keyframes pulse-beacon {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}

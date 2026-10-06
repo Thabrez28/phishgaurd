@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Scan History Log{% endblock %}
+{% block page_title %}Historical Threat Intelligence Log{% endblock %}
+{% block page_subtitle %}Comprehensive audit trail of inspected endpoints stored in PostgreSQL{% endblock %}
+
+{% block content %}
+<!-- Search and Verdict Filters Bar -->
+<div class="glass-panel" style="padding: 18px 24px; margin-bottom: 24px;">
+  <form method="GET" action="{{ url_for('scanner.history') }}" style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+    <div style="display: flex; gap: 10px; flex-grow: 1; max-width: 500px;">
+      <input type="text" name="q" class="cyber-input" placeholder="Search targets by URL, domain, or path..." value="{{ search_query }}" style="padding: 8px 14px; font-size: 0.88rem;">
+      <button type="submit" class="btn-cyber" style="padding: 8px 16px; font-size: 0.88rem;">
+        <i class="fas fa-magnifying-glass"></i> Filter
+      </button>
+    </div>
+
+    <!-- Verdict Pills -->
+    <div style="display: flex; gap: 8px;">
+      <a href="{{ url_for('scanner.history', q=search_query) }}" class="btn-cyber-outline" style="padding: 6px 12px; font-size: 0.78rem; text-decoration: none; border-radius: 6px; {% if not current_verdict %}background: rgba(56,189,248,0.2); border-color: var(--cyan-core); color:#fff;{% endif %}">
+        ALL
+      </a>
+      <a href="{{ url_for('scanner.history', verdict='SAFE', q=search_query) }}" class="badge-threat safe" style="text-decoration: none; padding: 6px 12px; font-size: 0.78rem;">
+        SAFE
+      </a>
+      <a href="{{ url_for('scanner.history', verdict='SUSPICIOUS', q=search_query) }}" class="badge-threat suspicious" style="text-decoration: none; padding: 6px 12px; font-size: 0.78rem;">
+        SUSPICIOUS
+      </a>
+      <a href="{{ url_for('scanner.history', verdict='PHISHING', q=search_query) }}" class="badge-threat phishing" style="text-decoration: none; padding: 6px 12px; font-size: 0.78rem;">
+        PHISHING
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- History Table -->
+<div class="glass-panel" style="padding: 24px; overflow-x: auto;">
+  {% if scans %}
+  <table class="cyber-table">
+    <thead>
+      <tr>
+        <th style="width: 70px;">ID</th>
+        <th>Target URL</th>
+        <th style="width: 90px;">Score</th>
+        <th style="width: 120px;">Verdict</th>
+        <th style="width: 100px;">Risk</th>
+        <th style="width: 90px;">Source</th>
+        <th style="width: 160px;">Timestamp</th>
+        <th style="width: 90px; text-align: right;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in scans %}
+      <tr>
+        <td style="font-family: var(--font-mono); color: var(--text-subtle); font-size: 0.78rem;">#{{ s.id }}</td>
+        <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <a href="{{ url_for('scanner.result_detail', scan_id=s.id) }}" style="color: #fff; text-decoration: none; font-weight: 500;" title="{{ s.url }}">
+            {{ s.url }}
+          </a>
+        </td>
+        <td>
+          <span style="font-weight: 800; font-family: var(--font-mono); color: {% if s.threat_score >= 60 %}var(--threat-phishing){% elif s.threat_score >= 30 %}var(--threat-suspicious){% else %}var(--threat-safe){% endif %};">
+            {{ s.threat_score }}
+          </span>
+        </td>
+        <td>
+          <span class="badge-threat {{ s.verdict|lower }}">{{ s.verdict }}</span>
+        </td>
+        <td>
+          <span style="font-size: 0.75rem; font-weight: 700; color: {% if s.risk_level in ['CRITICAL', 'HIGH'] %}#ef4444{% elif s.risk_level == 'MEDIUM' %}#f59e0b{% else %}#10b981{% endif %};">
+            {{ s.risk_level }}
+          </span>
+        </td>
+        <td>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-subtle);">
+            {{ s.source }}
+          </span>
+        </td>
+        <td style="font-size: 0.78rem; color: var(--text-subtle); font-family: var(--font-mono);">
+          {{ s.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </td>
+        <td style="text-align: right;">
+          <a href="{{ url_for('scanner.result_detail', scan_id=s.id) }}" class="btn-cyber-outline" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none; border-radius: 4px;">
+            Details
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Pagination Controls -->
+  {% if pagination and pagination.pages > 1 %}
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+    <span style="font-size: 0.78rem; color: var(--text-muted);">
+      Page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} total entries)
+    </span>
+    <div style="display: flex; gap: 8px;">
+      {% if pagination.has_prev %}
+      <a href="{{ url_for('scanner.history', page=pagination.prev_num, verdict=current_verdict, q=search_query) }}" class="btn-cyber-outline" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none;">
+        &laquo; Previous
+      </a>
+      {% endif %}
+      {% if pagination.has_next %}
+      <a href="{{ url_for('scanner.history', page=pagination.next_num, verdict=current_verdict, q=search_query) }}" class="btn-cyber-outline" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none;">
+        Next &raquo;
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+    <i class="fas fa-folder-open" style="font-size: 2.2rem; color: var(--text-subtle); margin-bottom: 12px; display: block;"></i>
+    No scan records found matching query criteria.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

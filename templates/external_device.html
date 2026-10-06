@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}External Device Integration{% endblock %}
+{% block page_title %}External Device & Remote Agent Integration{% endblock %}
+{% block page_subtitle %}Connect mobile devices, secondary laptops, and CLI sensors to live cloud SOC{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+
+  <!-- Current Device Telemetry Banner -->
+  <div class="glass-panel" style="padding: 24px; margin-bottom: 24px; border-left: 4px solid var(--cyan-core);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+      <h3 style="font-size: 1.1rem; font-weight: 700; color: #fff;">
+        <i class="fas fa-network-wired" style="color: var(--cyan-core); margin-right: 8px;"></i>
+        Connected Remote Device Telemetry
+      </h3>
+      <span class="badge-threat safe">
+        <span class="beacon-dot" style="margin-right: 4px;"></span> Handshake Established
+      </span>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Your Device Remote IP</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #38bdf8; font-family: var(--font-mono); margin-top: 4px;">
+          {{ client_ip }}
+        </div>
+      </div>
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Detected Client User-Agent</div>
+        <div style="font-size: 0.82rem; font-weight: 500; color: #fff; font-family: var(--font-mono); margin-top: 4px; word-break: break-all;">
+          {{ user_agent }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Device Demonstration Architecture -->
+  <div class="glass-panel" style="padding: 28px; margin-bottom: 28px;">
+    <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 14px;">
+      <i class="fas fa-sitemap" style="color: var(--cyan-core); margin-right: 8px;"></i>
+      Two-Device Evaluation Demonstration Architecture
+    </h3>
+    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;">
+      PhishGuard Live is specifically architected for cross-network verification. Any external internet-connected device (mobile smartphone, remote workstation, or IoT sensor) communicates securely with the cloud deployment without local network constraints.
+    </p>
+
+    <!-- Visual Flow Diagram -->
+    <div style="background: #050912; border: 1px solid var(--border-glow); border-radius: 12px; padding: 20px; font-family: var(--font-mono); font-size: 0.82rem; color: var(--cyan-core); line-height: 1.6; overflow-x: auto; margin-bottom: 20px;">
+<span style="color: #6ee7b7;">[ DEVICE 1: Smartphone / Browser ]</span>
+      │  (User navigates to Render Public HTTPS URL)
+      ▼
+<span style="color: #38bdf8;">[ INTERNET / RENDER CLOUD HTTPS ]</span>
+      │
+      ├─► <span style="color: #fff;">PhishGuard Live Flask App</span>
+      │         │
+      │         ├─► Static Threat Engine (0-100 Score)
+      │         ├─► PostgreSQL Persistence
+      │         └─► Security Alert Generation
+      │
+<span style="color: #fca5a5;">[ DEVICE 2: Laptop / CLI Python Agent ]</span>
+      │  (Executes: python phishguard_agent.py "http://target.com")
+      ▼
+<span style="color: #38bdf8;">[ POST /api/scan REST API ]</span>
+      │
+      └─► <span style="color: #fcd34d;">LIVE DASHBOARD UPDATES ON BOTH DEVICES INSTANTLY</span>
+    </div>
+
+    <!-- Step by Step Instructions -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 18px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <h4 style="font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 10px;">
+          <i class="fas fa-mobile-screen-button" style="color: #6ee7b7; margin-right: 6px;"></i> Step A: Test from Mobile Phone
+        </h4>
+        <ol style="font-size: 0.82rem; color: var(--text-muted); padding-left: 20px; line-height: 1.6;">
+          <li>Open your mobile phone browser (Chrome/Safari).</li>
+          <li>Navigate to your live Render public HTTPS URL.</li>
+          <li>Log in as <code style="color: #fff;">admin</code> and visit the <strong>URL Scanner</strong>.</li>
+          <li>Scan a sample URL. Notice how the scan instantly writes to PostgreSQL.</li>
+        </ol>
+      </div>
+
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 18px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <h4 style="font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 10px;">
+          <i class="fas fa-laptop" style="color: #fca5a5; margin-right: 6px;"></i> Step B: Test from External Laptop CLI
+        </h4>
+        <ol style="font-size: 0.82rem; color: var(--text-muted); padding-left: 20px; line-height: 1.6;">
+          <li>Open a terminal on any separate computer.</li>
+          <li>Run the standalone agent script (no credentials needed).</li>
+          <li>Watch the agent receive the deterministic score report.</li>
+          <li>Refresh the dashboard on your phone to see the new scan appear!</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLI Agent Setup Guide -->
+  <div class="glass-panel" style="padding: 28px;">
+    <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 14px;">
+      <i class="fas fa-terminal" style="color: var(--cyan-core); margin-right: 8px;"></i>
+      Executing the Python CLI Security Agent
+    </h3>
+    <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+      The <code>agent/phishguard_agent.py</code> script operates autonomously from any Python 3 environment. It reads the target URL via arguments or stdin, contacts the cloud API endpoint, and renders a colored threat assessment report.
+    </p>
+
+    <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">1. Configure Cloud Host URL (Bash / PowerShell):</div>
+    <div class="code-block" style="margin-bottom: 16px;">
+# In Linux / macOS / Git Bash:
+export PHISHGUARD_API_URL="{{ request.host_url.rstrip('/') }}"
+
+# In Windows PowerShell:
+$env:PHISHGUARD_API_URL="{{ request.host_url.rstrip('/') }}"
+    </div>
+
+    <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">2. Execute Threat Scan via Agent:</div>
+    <div class="code-block" style="margin-bottom: 16px;">
+python agent/phishguard_agent.py "http://paypal.com.verify-billing-update.xyz/login/secure"
+    </div>
+
+    <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">3. Direct cURL Alternative from Any Embedded Device:</div>
+    <div class="code-block">
+curl -X POST "{{ request.host_url }}api/scan" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "http://suspicious-target.top/verify"}'
+    </div>
+  </div>
+
+</div>
+{% endblock %}
