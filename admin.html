@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}System Administration Console{% endblock %}
+{% block page_title %}SOC Administration & Security Controls{% endblock %}
+{% block page_subtitle %}Operator management, database controls, synthetic seed generation, and audit logs{% endblock %}
+
+{% block content %}
+<!-- Quick Admin Action Strip -->
+<div class="glass-panel" style="padding: 20px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+  <div>
+    <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff;">
+      <i class="fas fa-shield-virus" style="color: var(--cyan-core); margin-right: 8px;"></i>
+      PostgreSQL Database Management
+    </h3>
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+      Populate realistic synthetic demonstration scans without introducing real malware or SSRF risks.
+    </p>
+  </div>
+  <div>
+    <form method="POST" action="{{ url_for('admin.seed_demo_data') }}" onsubmit="return confirm('Generate safe synthetic demo records into PostgreSQL?');">
+      <button type="submit" class="btn-cyber" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+        <i class="fas fa-seedling"></i> Seed Synthetic Demo Dataset
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Admin Stats Telemetry -->
+<div class="telemetry-grid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 24px;">
+  <div class="glass-panel metric-card" style="--accent-color: #38bdf8;">
+    <div class="metric-header"><span class="metric-label">Users</span><i class="fas fa-users metric-icon"></i></div>
+    <div class="metric-value">{{ stats.total_users }}</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: #00f2fe;">
+    <div class="metric-header"><span class="metric-label">Scans</span><i class="fas fa-radar metric-icon"></i></div>
+    <div class="metric-value">{{ stats.total_scans }}</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: #f59e0b;">
+    <div class="metric-header"><span class="metric-label">Alerts</span><i class="fas fa-bell metric-icon"></i></div>
+    <div class="metric-value">{{ stats.total_alerts }}</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: #ef4444;">
+    <div class="metric-header"><span class="metric-label">Events</span><i class="fas fa-shield-cat metric-icon"></i></div>
+    <div class="metric-value">{{ stats.total_events }}</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: #a855f7;">
+    <div class="metric-header"><span class="metric-label">API Calls</span><i class="fas fa-code metric-icon"></i></div>
+    <div class="metric-value">{{ stats.total_api_calls }}</div>
+  </div>
+</div>
+
+<!-- Users Management Table -->
+<div class="glass-panel" style="padding: 24px; margin-bottom: 24px; overflow-x: auto;">
+  <h3 style="font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 16px;">
+    <i class="fas fa-users-gear" style="color: var(--cyan-core); margin-right: 8px;"></i> Enrolled Operative Accounts
+  </h3>
+  <table class="cyber-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Failed Attempts</th>
+        <th>Account Lock</th>
+        <th>Registered</th>
+        <th style="text-align: right;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td style="font-family: var(--font-mono); color: var(--text-subtle);">#{{ u.id }}</td>
+        <td style="font-weight: 700; color: #fff;">{{ u.username }}</td>
+        <td style="color: var(--text-muted);">{{ u.email }}</td>
+        <td>
+          <span style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;
+            {% if u.role == 'admin' %}background: rgba(14,165,233,0.2); color: #38bdf8; border: 1px solid rgba(14,165,233,0.4);
+            {% else %}background: rgba(255,255,255,0.06); color: var(--text-muted);{% endif %}">
+            {{ u.role }}
+          </span>
+        </td>
+        <td style="font-family: var(--font-mono); color: {% if u.failed_login_attempts >= 3 %}#ef4444{% else %}var(--text-subtle){% endif %};">
+          {{ u.failed_login_attempts }} / 5
+        </td>
+        <td>
+          {% if u.is_locked %}
+          <span class="badge-threat phishing" style="font-size: 0.68rem;"><i class="fas fa-lock"></i> LOCKED</span>
+          {% else %}
+          <span class="badge-threat safe" style="font-size: 0.68rem;"><i class="fas fa-lock-open"></i> ACTIVE</span>
+          {% endif %}
+        </td>
+        <td style="font-size: 0.78rem; color: var(--text-subtle); font-family: var(--font-mono);">
+          {{ u.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </td>
+        <td style="text-align: right;">
+          {% if u.id != session.get('user_id') %}
+          <form method="POST" action="{{ url_for('admin.toggle_user_lock', user_id=u.id) }}" style="display: inline-block;">
+            <button type="submit" class="btn-cyber-outline" style="padding: 4px 8px; font-size: 0.75rem; border-radius: 4px;">
+              {% if u.is_locked %}Unlock Account{% else %}Lock Account{% endif %}
+            </button>
+          </form>
+          {% else %}
+          <span style="font-size: 0.72rem; color: var(--text-subtle);">Current Session</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Two-Column Grid: Failed Logins & Recent API Telemetry -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <!-- Failed Login Tracking -->
+  <div class="glass-panel" style="padding: 24px;">
+    <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 14px;">
+      <i class="fas fa-user-xmark" style="color: #ef4444; margin-right: 8px;"></i>
+      Failed Authentication Attempts
+    </h3>
+    {% if failed_logins %}
+      <div style="max-height: 300px; overflow-y: auto;">
+        {% for fl in failed_logins %}
+        <div style="padding: 10px; background: rgba(10, 16, 28, 0.6); border-radius: 6px; border-left: 3px solid #ef4444; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-subtle);">
+            <span>{{ fl.event_type }}</span>
+            <span>{{ fl.created_at.strftime('%H:%M:%S UTC') }}</span>
+          </div>
+          <div style="font-size: 0.82rem; color: #fff; margin-top: 2px;">{{ fl.description }}</div>
+          <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 4px;">IP: {{ fl.ip_address or 'Unknown' }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.85rem; padding: 20px; text-align: center;">No failed authentication attempts logged.</p>
+    {% endif %}
+  </div>
+
+  <!-- API Activity Telemetry -->
+  <div class="glass-panel" style="padding: 24px;">
+    <h3 style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 14px;">
+      <i class="fas fa-network-wired" style="color: var(--cyan-core); margin-right: 8px;"></i>
+      Recent Inbound API Telemetry
+    </h3>
+    {% if api_logs %}
+      <div style="max-height: 300px; overflow-y: auto;">
+        {% for log in api_logs %}
+        <div style="padding: 8px 12px; background: rgba(10, 16, 28, 0.6); border-radius: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <span style="font-weight: 700; font-size: 0.72rem; font-family: var(--font-mono); color: #38bdf8;">{{ log.method }}</span>
+            <span style="font-size: 0.8rem; color: #fff; margin-left: 6px; font-family: var(--font-mono);">{{ log.endpoint }}</span>
+            <div style="font-size: 0.68rem; color: var(--text-subtle);">IP: {{ log.ip_address }}</div>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-weight: 700; font-size: 0.75rem; font-family: var(--font-mono); color: {% if log.response_status == 200 %}#10b981{% elif log.response_status == 429 %}#f59e0b{% else %}#ef4444{% endif %};">
+              {{ log.response_status }}
+            </span>
+            <div style="font-size: 0.68rem; color: var(--text-subtle);">{{ log.created_at.strftime('%H:%M:%S') }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color: var(--text-muted); font-size: 0.85rem; padding: 20px; text-align: center;">No API requests logged yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

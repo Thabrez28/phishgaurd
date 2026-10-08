@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Security Alerts & Incident Triage{% endblock %}
+{% block page_title %}Security Alerts & Incident Triage{% endblock %}
+{% block page_subtitle %}Automated high-priority threat alerts triggered by the URL analysis engine{% endblock %}
+
+{% block content %}
+<!-- Metrics Summary Strip -->
+<div class="telemetry-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+  <div class="glass-panel metric-card" style="--accent-color: #ef4444;">
+    <div class="metric-header">
+      <span class="metric-label">Open Alerts</span>
+      <i class="fas fa-triangle-exclamation metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: #ef4444;">{{ counts.OPEN }}</div>
+    <div class="metric-footer">Requiring analyst triage</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: #f59e0b;">
+    <div class="metric-header">
+      <span class="metric-label">Investigating</span>
+      <i class="fas fa-magnifying-glass-chart metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: #f59e0b;">{{ counts.INVESTIGATING }}</div>
+    <div class="metric-footer">Under active review</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: #10b981;">
+    <div class="metric-header">
+      <span class="metric-label">Resolved</span>
+      <i class="fas fa-circle-check metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: #10b981;">{{ counts.RESOLVED }}</div>
+    <div class="metric-footer">Mitigated incidents</div>
+  </div>
+  <div class="glass-panel metric-card" style="--accent-color: #dc2626;">
+    <div class="metric-header">
+      <span class="metric-label">Critical Tier</span>
+      <i class="fas fa-biohazard metric-icon"></i>
+    </div>
+    <div class="metric-value" style="color: #dc2626;">{{ counts.CRITICAL }}</div>
+    <div class="metric-footer">Immediate escalation</div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="glass-panel" style="padding: 16px 24px; margin-bottom: 24px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-right: 6px;">Status:</span>
+    <a href="{{ url_for('alerts.list_alerts', severity=current_severity) }}" class="btn-cyber-outline" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none; border-radius: 4px; {% if not current_status %}background: rgba(56,189,248,0.2); border-color: var(--cyan-core); color: #fff;{% endif %}">ALL</a>
+    <a href="{{ url_for('alerts.list_alerts', status='OPEN', severity=current_severity) }}" class="btn-cyber-outline" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none; border-radius: 4px; {% if current_status == 'OPEN' %}background: rgba(239,68,68,0.2); border-color: #ef4444; color: #fff;{% endif %}">OPEN</a>
+    <a href="{{ url_for('alerts.list_alerts', status='INVESTIGATING', severity=current_severity) }}" class="btn-cyber-outline" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none; border-radius: 4px; {% if current_status == 'INVESTIGATING' %}background: rgba(245,158,11,0.2); border-color: #f59e0b; color: #fff;{% endif %}">INVESTIGATING</a>
+    <a href="{{ url_for('alerts.list_alerts', status='RESOLVED', severity=current_severity) }}" class="btn-cyber-outline" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none; border-radius: 4px; {% if current_status == 'RESOLVED' %}background: rgba(16,185,129,0.2); border-color: #10b981; color: #fff;{% endif %}">RESOLVED</a>
+  </div>
+
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-right: 6px;">Severity:</span>
+    <a href="{{ url_for('alerts.list_alerts', status=current_status, severity='CRITICAL') }}" class="badge-threat critical" style="text-decoration: none; font-size: 0.7rem;">CRITICAL</a>
+    <a href="{{ url_for('alerts.list_alerts', status=current_status, severity='HIGH') }}" class="badge-threat phishing" style="text-decoration: none; font-size: 0.7rem;">HIGH</a>
+    <a href="{{ url_for('alerts.list_alerts', status=current_status, severity='MEDIUM') }}" class="badge-threat suspicious" style="text-decoration: none; font-size: 0.7rem;">MEDIUM</a>
+  </div>
+</div>
+
+<!-- Alerts Table -->
+<div class="glass-panel" style="padding: 24px; overflow-x: auto;">
+  {% if alerts %}
+  <table class="cyber-table">
+    <thead>
+      <tr>
+        <th style="width: 70px;">ID</th>
+        <th style="width: 110px;">Severity</th>
+        <th style="width: 220px;">Alert Type</th>
+        <th>Incident Description</th>
+        <th style="width: 130px;">Status</th>
+        <th style="width: 150px;">Timestamp</th>
+        <th style="width: 140px; text-align: right;">Triage Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alert in alerts %}
+      <tr>
+        <td style="font-family: var(--font-mono); color: var(--text-subtle); font-size: 0.78rem;">#{{ alert.id }}</td>
+        <td>
+          <span class="badge-threat {{ alert.severity|lower }}">{{ alert.severity }}</span>
+        </td>
+        <td style="font-weight: 700; color: #fff; font-size: 0.85rem;">
+          {{ alert.alert_type }}
+        </td>
+        <td style="font-size: 0.85rem; color: var(--text-main); line-height: 1.4;">
+          {{ alert.message }}
+          {% if alert.scan_id %}
+          <div style="margin-top: 4px;">
+            <a href="{{ url_for('scanner.result_detail', scan_id=alert.scan_id) }}" style="color: var(--cyan-core); font-size: 0.75rem; text-decoration: none;">
+              <i class="fas fa-link"></i> View Linked Scan #{{ alert.scan_id }}
+            </a>
+          </div>
+          {% endif %}
+        </td>
+        <td>
+          <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; 
+            {% if alert.status == 'OPEN' %}background: rgba(239,68,68,0.15); color: #fca5a5;
+            {% elif alert.status == 'INVESTIGATING' %}background: rgba(245,158,11,0.15); color: #fcd34d;
+            {% else %}background: rgba(16,185,129,0.15); color: #6ee7b7;{% endif %}">
+            {{ alert.status }}
+          </span>
+          {% if alert.resolved_by %}
+          <div style="font-size: 0.68rem; color: var(--text-subtle); margin-top: 2px;">
+            by {{ alert.resolved_by }}
+          </div>
+          {% endif %}
+        </td>
+        <td style="font-size: 0.78rem; color: var(--text-subtle); font-family: var(--font-mono);">
+          {{ alert.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </td>
+        <td style="text-align: right;">
+          {% if alert.status != 'RESOLVED' %}
+          <form method="POST" action="{{ url_for('alerts.update_status', alert_id=alert.id) }}" style="display: inline-block;">
+            <input type="hidden" name="status" value="RESOLVED">
+            <button type="submit" class="btn-cyber" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; background: #059669; border-color: #10b981;">
+              <i class="fas fa-check"></i> Resolve
+            </button>
+          </form>
+          {% else %}
+          <form method="POST" action="{{ url_for('alerts.update_status', alert_id=alert.id) }}" style="display: inline-block;">
+            <input type="hidden" name="status" value="INVESTIGATING">
+            <button type="submit" class="btn-cyber-outline" style="padding: 4px 8px; font-size: 0.72rem; border-radius: 4px;">
+              Re-open
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+    <i class="fas fa-bell-slash" style="font-size: 2.2rem; color: var(--text-subtle); margin-bottom: 12px; display: block;"></i>
+    No security alerts match the selected status or severity filters.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
