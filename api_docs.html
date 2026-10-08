@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}REST API Documentation{% endblock %}
+{% block page_title %}RESTful Threat Intelligence API{% endblock %}
+{% block page_subtitle %}Programmatic integration guide for automated pipelines, SIEM, and external sensors{% endblock %}
+
+{% block content %}
+<div style="max-width: 980px; margin: 0 auto;">
+  <!-- Overview Banner -->
+  <div class="glass-panel" style="padding: 24px; margin-bottom: 24px;">
+    <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 8px;">
+      <i class="fas fa-terminal" style="color: var(--cyan-core); margin-right: 8px;"></i> Enterprise API Architecture
+    </h3>
+    <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+      PhishGuard Live exposes a zero-trust, deterministic REST API engineered for SIEM connectors, security orchestration automated response (SOAR), and distributed device monitoring agents. All endpoints return RFC 8259 JSON objects.
+    </p>
+    <div style="display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap;">
+      <span class="badge-threat safe"><i class="fas fa-shield-alt"></i> Static Heuristics (Zero-SSRF)</span>
+      <span class="badge-threat safe"><i class="fas fa-bolt"></i> < 50ms Latency</span>
+      <span class="badge-threat suspicious"><i class="fas fa-gauge-high"></i> 200 req/hour Default Throttle</span>
+    </div>
+  </div>
+
+  <!-- Endpoints List -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+
+    <!-- 1. GET /api/health -->
+    <div class="glass-panel" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="background: #0284c7; color: #fff; font-weight: 800; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; font-family: var(--font-mono);">GET</span>
+          <span style="font-size: 1.05rem; font-weight: 700; color: #fff; font-family: var(--font-mono);">/api/health</span>
+        </div>
+        <span style="font-size: 0.75rem; color: var(--text-subtle);">Unauthenticated &bull; Health Monitoring</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+        Returns current operational status of the PhishGuard application server and PostgreSQL database connection.
+      </p>
+
+      <div class="code-block">
+curl -X GET "{{ request.host_url }}api/health"
+      </div>
+
+      <div style="margin-top: 12px; font-size: 0.78rem; color: var(--text-muted);">Sample 200 OK Response:</div>
+      <div class="code-block" style="color: #6ee7b7; margin-top: 4px;">
+{
+  "application": "PhishGuard Live",
+  "database": "connected",
+  "status": "healthy"
+}
+      </div>
+    </div>
+
+    <!-- 2. POST /api/scan -->
+    <div class="glass-panel" style="padding: 24px; border-left: 4px solid var(--cyan-core);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="background: #059669; color: #fff; font-weight: 800; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; font-family: var(--font-mono);">POST</span>
+          <span style="font-size: 1.05rem; font-weight: 700; color: #fff; font-family: var(--font-mono);">/api/scan</span>
+        </div>
+        <span class="badge-threat safe">Core Defensive Endpoint</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+        Performs comprehensive static URL threat analysis. Generates a deterministic threat score (0-100), extracts structural anomalies, triggers alerts if high-risk, and writes audit telemetry to PostgreSQL.
+      </p>
+
+      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px;">cURL Execution Example:</div>
+      <div class="code-block">
+curl -X POST "{{ request.host_url }}api/scan" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "http://paypal.com.verify-billing-update.xyz/login/secure"}'
+      </div>
+
+      <div style="margin-top: 12px; font-size: 0.78rem; color: var(--text-muted);">Sample 200 OK Response (Phishing Detected):</div>
+      <div class="code-block" style="color: #fca5a5; margin-top: 4px;">
+{
+  "success": true,
+  "scan_id": 42,
+  "url": "http://paypal.com.verify-billing-update.xyz/login/secure",
+  "normalized_url": "http://paypal.com.verify-billing-update.xyz/login/secure",
+  "threat_score": 85,
+  "verdict": "PHISHING",
+  "risk_level": "CRITICAL",
+  "indicators": [
+    {
+      "code": "BRAND_SPOOF",
+      "name": "Suspected Brand Impersonation (Paypal)",
+      "severity": "CRITICAL",
+      "weight": 40
+    },
+    {
+      "code": "SUSPICIOUS_TLD",
+      "name": "High-Risk TLD (.xyz)",
+      "severity": "MEDIUM",
+      "weight": 15
+    },
+    {
+      "code": "SUBDOMAIN_KEYWORDS",
+      "name": "Security Keywords in Subdomain",
+      "severity": "HIGH",
+      "weight": 20
+    }
+  ],
+  "explanation": "PhishGuard detected 3 severe threat indicators...",
+  "recommendation": "DANGER: Do NOT click this link, submit credentials, or download attachments.",
+  "scanned_at": "2026-10-06T10:45:00.123456"
+}
+      </div>
+    </div>
+
+    <!-- 3. GET /api/stats -->
+    <div class="glass-panel" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="background: #0284c7; color: #fff; font-weight: 800; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; font-family: var(--font-mono);">GET</span>
+          <span style="font-size: 1.05rem; font-weight: 700; color: #fff; font-family: var(--font-mono);">/api/stats</span>
+        </div>
+        <span style="font-size: 0.75rem; color: var(--text-subtle);">Threat Intelligence Telemetry</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+        Returns real-time aggregate threat statistics computed directly from PostgreSQL.
+      </p>
+
+      <div class="code-block">
+curl -X GET "{{ request.host_url }}api/stats"
+      </div>
+
+      <div style="margin-top: 12px; font-size: 0.78rem; color: var(--text-muted);">Sample 200 OK Response:</div>
+      <div class="code-block" style="color: #7dd3fc; margin-top: 4px;">
+{
+  "active_alerts": 3,
+  "detection_rate_pct": 36.4,
+  "phishing_scans": 12,
+  "safe_scans": 35,
+  "success": true,
+  "suspicious_scans": 8,
+  "total_scans": 55
+}
+      </div>
+    </div>
+
+    <!-- 4. GET /api/scans & GET /api/alerts -->
+    <div class="glass-panel" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="background: #0284c7; color: #fff; font-weight: 800; font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; font-family: var(--font-mono);">GET</span>
+          <span style="font-size: 1.05rem; font-weight: 700; color: #fff; font-family: var(--font-mono);">/api/scans</span>
+          <span style="margin: 0 4px; color: var(--text-subtle);">|</span>
+          <span style="font-size: 1.05rem; font-weight: 700; color: #fff; font-family: var(--font-mono);">/api/alerts</span>
+        </div>
+        <span style="font-size: 0.75rem; color: var(--text-subtle);">Incident Feeds</span>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+        Stream recent scan logs or active security alert queues for integration into external SIEM tools. Supports optional <code>?limit=N</code> parameter.
+      </p>
+
+      <div class="code-block">
+curl -X GET "{{ request.host_url }}api/scans?limit=10"
+curl -X GET "{{ request.host_url }}api/alerts"
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

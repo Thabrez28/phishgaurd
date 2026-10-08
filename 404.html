@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}404 Endpoint Not Found{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 60px auto; text-align: center;">
+  <div class="glass-panel" style="padding: 40px; border-top: 4px solid #38bdf8;">
+    <div style="font-size: 3rem; color: #38bdf8; margin-bottom: 14px;">
+      <i class="fas fa-satellite-dish"></i>
+    </div>
+    <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px;">404 TARGET NOT FOUND</h2>
+    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">
+      The requested URI endpoint does not exist or has been decommissioned from the PhishGuard network mesh.
+    </p>
+    <a href="{{ url_for('dashboard.dashboard') }}" class="btn-cyber">
+      <i class="fas fa-house"></i> Return to Operations Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block auth_content %}
+<div style="max-width: 600px; margin: 60px auto; text-align: center;">
+  <div class="glass-panel" style="padding: 40px; border-top: 4px solid #38bdf8;">
+    <div style="font-size: 3rem; color: #38bdf8; margin-bottom: 14px;">
+      <i class="fas fa-satellite-dish"></i>
+    </div>
+    <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px;">404 TARGET NOT FOUND</h2>
+    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">
+      The requested URI endpoint does not exist or has been decommissioned from the PhishGuard network mesh.
+    </p>
+    <a href="{{ url_for('auth.login') }}" class="btn-cyber">
+      <i class="fas fa-shield-halved"></i> Return to SOC Login
+    </a>
+  </div>
+</div>
+{% endblock %}

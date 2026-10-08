@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}403 Forbidden - Access Denied{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 60px auto; text-align: center;">
+  <div class="glass-panel" style="padding: 40px; border-top: 4px solid #ef4444;">
+    <div style="font-size: 3rem; color: #ef4444; margin-bottom: 14px;">
+      <i class="fas fa-hand-holding-hand"></i>
+    </div>
+    <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px;">403 FORBIDDEN</h2>
+    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">
+      Access Denied. Your security clearance is insufficient to inspect this operational node. This incident has been logged in the SOC audit trail.
+    </p>
+    <a href="{{ url_for('dashboard.dashboard') }}" class="btn-cyber">
+      <i class="fas fa-house"></i> Return to Operations Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block auth_content %}
+<div style="max-width: 600px; margin: 60px auto; text-align: center;">
+  <div class="glass-panel" style="padding: 40px; border-top: 4px solid #ef4444;">
+    <div style="font-size: 3rem; color: #ef4444; margin-bottom: 14px;">
+      <i class="fas fa-hand-holding-hand"></i>
+    </div>
+    <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px;">403 FORBIDDEN</h2>
+    <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5;">
+      Access Denied. Please authenticate with appropriate security credentials.
+    </p>
+    <a href="{{ url_for('auth.login') }}" class="btn-cyber">
+      <i class="fas fa-lock"></i> Return to Login
+    </a>
+  </div>
+</div>
+{% endblock %}

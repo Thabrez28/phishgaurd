@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}SOC Analyst Sign In{% endblock %}
+
+{% block auth_content %}
+<div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 24px;">
+  <div class="glass-panel" style="width: 100%; max-width: 440px; padding: 40px 36px; text-align: center;">
+    <div style="width: 58px; height: 58px; margin: 0 auto 16px; background: linear-gradient(135deg, #0284c7 0%, #00f2fe 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; color: #fff; box-shadow: 0 0 24px rgba(0, 242, 254, 0.4);">
+      <i class="fas fa-shield-halved"></i>
+    </div>
+    
+    <h2 class="cyber-glow-text" style="font-size: 1.5rem; font-weight: 800; letter-spacing: 0.04em;">PHISHGUARD LIVE</h2>
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 28px; text-transform: uppercase; letter-spacing: 0.08em;">SOC Threat Operations Portal</p>
+
+    <!-- Demo Credentials Notice -->
+    <div style="background: rgba(14, 165, 233, 0.08); border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; text-align: left; font-size: 0.78rem;">
+      <div style="color: var(--cyan-core); font-weight: 700; margin-bottom: 2px;">
+        <i class="fas fa-key"></i> System Default Admin
+      </div>
+      <div style="color: var(--text-muted); font-family: var(--font-mono);">
+        Username: <strong style="color: #fff;">admin</strong> &nbsp;|&nbsp; Pass: <strong style="color: #fff;">Admin@PhishGuard2026!</strong>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}" style="text-align: left;">
+      <div style="margin-bottom: 18px;">
+        <label class="cyber-label" for="username">Username or Email</label>
+        <div style="position: relative;">
+          <input type="text" id="username" name="username" class="cyber-input" placeholder="e.g. admin or analyst@sec.net" value="{{ username or '' }}" required autofocus>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <label class="cyber-label" for="password">Security Password</label>
+        <input type="password" id="password" name="password" class="cyber-input" placeholder="••••••••••••" required>
+      </div>
+
+      <button type="submit" class="btn-cyber" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem;">
+        <i class="fas fa-lock-open"></i> Authenticate & Enter SOC
+      </button>
+    </form>
+
+    <div style="margin-top: 24px; font-size: 0.82rem; color: var(--text-subtle);">
+      New security operative? 
+      <a href="{{ url_for('auth.register') }}" style="color: var(--cyan-core); text-decoration: none; font-weight: 600;">Register Operator Key</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

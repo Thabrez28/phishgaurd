@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🔐 PhishGuard Live
 ### Cloud-Based Phishing URL Detection & Security Operations Monitoring Platform
 
@@ -406,3 +407,6 @@ Comprehensive academic and technical documentation is available in `docs/`:
 ## 📄 License
 This project is developed for defensive cybersecurity research, academic demonstration, and educational purposes.
 Unauthorized malicious deployment or scanning of non-consenting infrastructure is strictly prohibited.
+=======
+# phishgaurd
+>>>>>>> origin/main

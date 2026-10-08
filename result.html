@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Scan Report #{{ scan.id }}{% endblock %}
+{% block page_title %}Technical Threat Dossier #{{ scan.id }}{% endblock %}
+{% block page_subtitle %}Deep static lexical and cryptographic analysis of inspected target{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+  <!-- Header Bar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <a href="{{ url_for('scanner.history') }}" class="btn-cyber-outline" style="padding: 8px 14px; font-size: 0.85rem; text-decoration: none; border-radius: 6px;">
+      <i class="fas fa-arrow-left"></i> Return to Scan History
+    </a>
+    <div style="display: flex; gap: 10px;">
+      <a href="{{ url_for('scanner.scanner') }}" class="btn-cyber" style="padding: 8px 14px; font-size: 0.85rem;">
+        <i class="fas fa-radar"></i> New Scan
+      </a>
+    </div>
+  </div>
+
+  <!-- Primary Dossier Card -->
+  <div class="glass-panel" style="padding: 32px; margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 24px; margin-bottom: 24px;">
+      <div style="max-width: 650px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <span class="badge-threat {{ scan.verdict|lower }}">{{ scan.verdict }}</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+            RECORD ID: #{{ scan.id }} &bull; SOURCE: {{ scan.source|upper }}
+          </span>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #fff; word-break: break-all;">
+          {{ scan.url }}
+        </h3>
+        <div style="font-size: 0.8rem; color: var(--text-subtle); margin-top: 8px; font-family: var(--font-mono);">
+          Indexed At: {{ scan.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+        </div>
+      </div>
+
+      <!-- Score Box -->
+      <div style="text-align: center; background: rgba(10, 16, 28, 0.7); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px 24px;">
+        <div style="font-size: 2.2rem; font-weight: 900; line-height: 1; color: {% if scan.threat_score >= 60 %}var(--threat-phishing){% elif scan.threat_score >= 30 %}var(--threat-suspicious){% else %}var(--threat-safe){% endif %};">
+          {{ scan.threat_score }}
+        </div>
+        <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 4px;">Threat Score / 100</div>
+        <div style="font-size: 0.75rem; color: #fff; margin-top: 6px; font-weight: 600;">Risk: {{ scan.risk_level }}</div>
+      </div>
+    </div>
+
+    <!-- Lexical & Structural Metrics Grid -->
+    <h4 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--cyan-core); margin-bottom: 14px;">
+      <i class="fas fa-microchip"></i> Extracted Structural Telemetry
+    </h4>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 28px;">
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Host / Domain</div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: #fff; font-family: var(--font-mono); margin-top: 2px;">{{ features.host or 'N/A' }}</div>
+      </div>
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Domain Shannon Entropy</div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: {% if features.domain_entropy and features.domain_entropy > 3.8 %}#f59e0b{% else %}#10b981{% endif %}; font-family: var(--font-mono); margin-top: 2px;">
+          {{ features.domain_entropy or '0.0' }} <span style="font-size: 0.7rem; color: var(--text-muted);">(DGA Check)</span>
+        </div>
+      </div>
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">URL Length / Domain Length</div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: #fff; font-family: var(--font-mono); margin-top: 2px;">
+          {{ features.url_length or 0 }} chars / {{ features.domain_length or 0 }} chars
+        </div>
+      </div>
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Subdomains Count</div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: #fff; font-family: var(--font-mono); margin-top: 2px;">
+          {{ features.subdomain_count or 0 }} subdomains
+        </div>
+      </div>
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Protocol & Port</div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: #fff; font-family: var(--font-mono); margin-top: 2px;">
+          {{ features.scheme|upper or 'HTTP' }} : {{ features.port or 'Default' }}
+        </div>
+      </div>
+      <div style="background: rgba(10, 16, 28, 0.6); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Direct IP Host / @ Symbol</div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: #fff; font-family: var(--font-mono); margin-top: 2px;">
+          IP: {{ 'YES' if features.is_ip_address else 'NO' }} &bull; @: {{ 'YES' if features.has_at_symbol else 'NO' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Threat Indicators Detail -->
+    <h4 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--cyan-core); margin-bottom: 14px;">
+      <i class="fas fa-list-check"></i> Triggered Indicator Signatures ({{ indicators|length }})
+    </h4>
+
+    {% if indicators %}
+      {% for ind in indicators %}
+      <div class="indicator-card">
+        <div class="indicator-icon">
+          <i class="fas fa-shield-virus" style="color: {% if ind.severity in ['CRITICAL', 'HIGH'] %}#ef4444{% elif ind.severity == 'MEDIUM' %}#f59e0b{% else %}#38bdf8{% endif %};"></i>
+        </div>
+        <div class="indicator-content" style="flex-grow: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h4>{{ ind.name }}</h4>
+            <span class="badge-threat {{ ind.severity|lower }}" style="font-size: 0.68rem;">{{ ind.severity }}</span>
+          </div>
+          <p>{{ ind.description }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 14px; color: #6ee7b7; font-size: 0.85rem;">
+        <i class="fas fa-check-circle" style="margin-right: 6px;"></i>
+        Zero anomalous indicators detected. Target behaves predictably within normal parameters.
+      </div>
+    {% endif %}
+
+    <!-- Audit Metadata Footer -->
+    <div style="margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-subtle); flex-wrap: wrap; gap: 8px;">
+      <span>Client IP: {{ scan.client_ip or 'Internal/API' }}</span>
+      <span>User Agent: {{ scan.user_agent or 'N/A' }}</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
